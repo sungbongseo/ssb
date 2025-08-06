@@ -1,9 +1,16 @@
+# -*- coding: utf-8 -*-
 import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import numpy as np
+import sys
+import locale
+
+# UTF-8 인코딩 설정
+if sys.platform.startswith('win'):
+    locale.setlocale(locale.LC_ALL, 'Korean_Korea.949')
 
 # 페이지 설정
 st.set_page_config(
@@ -13,9 +20,15 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# CSS 스타일 적용 - 밝은 테마
+# CSS 스타일 적용 - 한글 폰트 추가
 st.markdown("""
 <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+    
+    * {
+        font-family: 'Noto Sans KR', sans-serif !important;
+    }
+    
     .main > div {
         padding-top: 2rem;
     }
@@ -32,12 +45,14 @@ st.markdown("""
     /* 메트릭 라벨 색상 */
     div[data-testid="metric-container"] label {
         color: #555555 !important;
+        font-family: 'Noto Sans KR', sans-serif !important;
     }
     
     /* 메트릭 값 색상 */
     div[data-testid="metric-container"] div[data-testid="metric-value"] {
         color: #1f77b4 !important;
         font-weight: bold;
+        font-family: 'Noto Sans KR', sans-serif !important;
     }
     
     /* 사이드바 스타일 */
@@ -48,11 +63,13 @@ st.markdown("""
     /* 제목 색상 */
     h1, h2, h3 {
         color: #2c3e50 !important;
+        font-family: 'Noto Sans KR', sans-serif !important;
     }
     
     /* 일반 텍스트 색상 */
     p, span, div {
         color: #333333 !important;
+        font-family: 'Noto Sans KR', sans-serif !important;
     }
     
     /* 차트 배경 */
@@ -70,6 +87,7 @@ st.markdown("""
     /* Plotly 차트 텍스트 색상 */
     .plotly text {
         fill: #333333 !important;
+        font-family: 'Noto Sans KR', sans-serif !important;
     }
     
     /* 탭 스타일 */
@@ -79,20 +97,31 @@ st.markdown("""
     
     .stTabs [data-baseweb="tab"] {
         color: #333333 !important;
+        font-family: 'Noto Sans KR', sans-serif !important;
     }
     
     /* 멀티셀렉트 스타일 */
     .stMultiSelect label {
         color: #333333 !important;
+        font-family: 'Noto Sans KR', sans-serif !important;
     }
 </style>
 """, unsafe_allow_html=True)
+
+# Plotly 한글 폰트 설정
+font_dict = dict(
+    family="Noto Sans KR, sans-serif",
+    size=12,
+    color="#333333"
+)
 
 # 데이터 로드 함수
 @st.cache_data
 def load_data(file):
     if file is not None:
-        df = pd.read_excel(file)
+        # Excel 파일 읽기 시 인코딩 처리
+        df = pd.read_excel(file, engine='openpyxl')
+        
         # 컬럼명 정리
         df.columns = df.columns.str.strip()
         
@@ -108,9 +137,6 @@ def load_data(file):
             if col in df.columns:
                 # 문자열을 숫자로 변환, 변환할 수 없는 값은 NaN으로 처리
                 df[col] = pd.to_numeric(df[col], errors='coerce')
-        
-        # NaN 값을 가진 행 제거 (선택사항)
-        # df = df.dropna(subset=numeric_columns)
         
         return df
     return None
@@ -137,22 +163,22 @@ with st.sidebar:
             # 부서 필터
             departments = st.multiselect(
                 "부서 선택:",
-                options=df['부서'].unique(),
-                default=df['부서'].unique()
+                options=df['부서'].unique().tolist(),
+                default=df['부서'].unique().tolist()
             )
             
             # 성별 필터
             genders = st.multiselect(
                 "성별 선택:",
-                options=df['성별'].unique(),
-                default=df['성별'].unique()
+                options=df['성별'].unique().tolist(),
+                default=df['성별'].unique().tolist()
             )
             
             # 직위 필터
             positions = st.multiselect(
                 "직위 선택:",
-                options=df['직위'].unique(),
-                default=df['직위'].unique()
+                options=df['직위'].unique().tolist(),
+                default=df['직위'].unique().tolist()
             )
             
             # 필터 적용
@@ -243,7 +269,7 @@ if filtered_df is not None and len(filtered_df) > 0:
             margin=dict(t=40, b=0, l=0, r=0),
             plot_bgcolor='white',
             paper_bgcolor='white',
-            font=dict(color='#333333')
+            font=font_dict
         )
         st.plotly_chart(fig_gender, use_container_width=True)
     
@@ -262,7 +288,7 @@ if filtered_df is not None and len(filtered_df) > 0:
             margin=dict(t=40, b=0, l=0, r=0),
             plot_bgcolor='white',
             paper_bgcolor='white',
-            font=dict(color='#333333')
+            font=font_dict
         )
         st.plotly_chart(fig_dept, use_container_width=True)
     
@@ -283,7 +309,7 @@ if filtered_df is not None and len(filtered_df) > 0:
             showlegend=False,
             plot_bgcolor='white',
             paper_bgcolor='white',
-            font=dict(color='#333333'),
+            font=font_dict,
             xaxis=dict(gridcolor='#e0e0e0'),
             yaxis=dict(gridcolor='#e0e0e0')
         )
@@ -329,7 +355,7 @@ if filtered_df is not None and len(filtered_df) > 0:
             margin=dict(t=40, b=0, l=0, r=0),
             plot_bgcolor='white',
             paper_bgcolor='white',
-            font=dict(color='#333333'),
+            font=font_dict,
             xaxis=dict(gridcolor='#e0e0e0'),
             yaxis=dict(gridcolor='#e0e0e0')
         )
@@ -340,7 +366,9 @@ if filtered_df is not None and len(filtered_df) > 0:
         # 카테고리별 평균 점수
         category_scores = {}
         for cat, cols in categories.items():
-            category_scores[cat] = filtered_df[cols].mean().mean()
+            valid_cols = [col for col in cols if col in filtered_df.columns]
+            if valid_cols:
+                category_scores[cat] = filtered_df[valid_cols].mean().mean()
         
         cat_df = pd.DataFrame(list(category_scores.items()), columns=['카테고리', '평균점수'])
         
@@ -358,7 +386,7 @@ if filtered_df is not None and len(filtered_df) > 0:
             margin=dict(t=40, b=0, l=0, r=0),
             plot_bgcolor='white',
             paper_bgcolor='white',
-            font=dict(color='#333333'),
+            font=font_dict,
             xaxis=dict(gridcolor='#e0e0e0'),
             yaxis=dict(gridcolor='#e0e0e0')
         )
@@ -373,98 +401,117 @@ if filtered_df is not None and len(filtered_df) > 0:
     
     with tab1:
         # 부서별 주요 지표 비교
-        dept_analysis = filtered_df.groupby('부서')[satisfaction_cols].mean()
-        
-        # 히트맵
-        fig_heatmap = px.imshow(
-            dept_analysis.T,
-            labels=dict(x="부서", y="평가 항목", color="평균 점수"),
-            title="부서별 만족도 히트맵",
-            color_continuous_scale='RdYlGn',
-            aspect="auto"
-        )
-        fig_heatmap.update_layout(
-            height=600,
-            plot_bgcolor='white',
-            paper_bgcolor='white',
-            font=dict(color='#333333')
-        )
-        st.plotly_chart(fig_heatmap, use_container_width=True)
+        valid_satisfaction_cols = [col for col in satisfaction_cols if col in filtered_df.columns]
+        if valid_satisfaction_cols:
+            dept_analysis = filtered_df.groupby('부서')[valid_satisfaction_cols].mean()
+            
+            # 히트맵
+            fig_heatmap = px.imshow(
+                dept_analysis.T,
+                labels=dict(x="부서", y="평가 항목", color="평균 점수"),
+                title="부서별 만족도 히트맵",
+                color_continuous_scale='RdYlGn',
+                aspect="auto"
+            )
+            fig_heatmap.update_layout(
+                height=600,
+                plot_bgcolor='white',
+                paper_bgcolor='white',
+                font=font_dict
+            )
+            st.plotly_chart(fig_heatmap, use_container_width=True)
     
     with tab2:
         # 직위별 분석
-        position_analysis = filtered_df.groupby('직위')[satisfaction_cols].mean()
-        
-        # 선택된 항목들에 대한 직위별 비교
-        selected_items = st.multiselect(
-            "비교할 항목 선택:",
-            satisfaction_cols,
-            default=['보상', '역량개발 기회', '근무환경', '직속상사 관계']
-        )
-        
-        if selected_items:
-            fig_position_comp = go.Figure()
+        if valid_satisfaction_cols:
+            position_analysis = filtered_df.groupby('직위')[valid_satisfaction_cols].mean()
             
-            for col in selected_items:
-                fig_position_comp.add_trace(go.Bar(
-                    name=col,
-                    x=position_analysis.index,
-                    y=position_analysis[col]
-                ))
+            # 선택된 항목들에 대한 직위별 비교
+            default_items = ['보상', '역량개발 기회', '근무환경', '직속상사 관계']
+            default_items = [item for item in default_items if item in valid_satisfaction_cols][:4]
             
-            fig_position_comp.update_layout(
-                title="직위별 항목 비교",
-                xaxis_title="직위",
-                yaxis_title="평균 점수",
-                barmode='group',
-                height=400,
-                plot_bgcolor='white',
-                paper_bgcolor='white',
-                font=dict(color='#333333'),
-                xaxis=dict(gridcolor='#e0e0e0'),
-                yaxis=dict(gridcolor='#e0e0e0')
+            selected_items = st.multiselect(
+                "비교할 항목 선택:",
+                valid_satisfaction_cols,
+                default=default_items if default_items else valid_satisfaction_cols[:4]
             )
-            st.plotly_chart(fig_position_comp, use_container_width=True)
+            
+            if selected_items:
+                fig_position_comp = go.Figure()
+                
+                for col in selected_items:
+                    if col in position_analysis.columns:
+                        fig_position_comp.add_trace(go.Bar(
+                            name=col,
+                            x=position_analysis.index,
+                            y=position_analysis[col]
+                        ))
+                
+                fig_position_comp.update_layout(
+                    title="직위별 항목 비교",
+                    xaxis_title="직위",
+                    yaxis_title="평균 점수",
+                    barmode='group',
+                    height=400,
+                    plot_bgcolor='white',
+                    paper_bgcolor='white',
+                    font=font_dict,
+                    xaxis=dict(gridcolor='#e0e0e0'),
+                    yaxis=dict(gridcolor='#e0e0e0')
+                )
+                st.plotly_chart(fig_position_comp, use_container_width=True)
     
     with tab3:
         # 근속연수별 분석
-        # 근속연수 구간 생성
-        filtered_df['근속연수_구간'] = pd.cut(
-            filtered_df['근속연수'],
-            bins=[0, 2, 5, 10, float('inf')],
-            labels=['2년 이하', '2-5년', '5-10년', '10년 이상']
-        )
-        
-        tenure_analysis = filtered_df.groupby('근속연수_구간')[['재입사여부', '지인 입사권유']].mean()
-        
-        fig_tenure = go.Figure()
-        fig_tenure.add_trace(go.Scatter(
-            x=tenure_analysis.index,
-            y=tenure_analysis['재입사여부'],
-            mode='lines+markers',
-            name='재입사 의향',
-            line=dict(width=3)
-        ))
-        fig_tenure.add_trace(go.Scatter(
-            x=tenure_analysis.index,
-            y=tenure_analysis['지인 입사권유'],
-            mode='lines+markers',
-            name='추천 의향',
-            line=dict(width=3)
-        ))
-        
-        fig_tenure.update_layout(
-            title="근속연수별 재입사/추천 의향",
-            xaxis_title="근속연수",
-            yaxis_title="평균 점수 (5점 만점)",
-            height=400,
-            plot_bgcolor='white',
-            paper_bgcolor='white',
-            font=dict(color='#333333'),
-            xaxis=dict(gridcolor='#e0e0e0'),
-            yaxis=dict(gridcolor='#e0e0e0')
-        )
-        st.plotly_chart(fig_tenure, use_container_width=True)
+        if '근속연수' in filtered_df.columns and not filtered_df['근속연수'].isna().all():
+            # 근속연수 구간 생성
+            filtered_df['근속연수_구간'] = pd.cut(
+                filtered_df['근속연수'],
+                bins=[0, 2, 5, 10, float('inf')],
+                labels=['2년 이하', '2-5년', '5-10년', '10년 이상']
+            )
+            
+            tenure_cols = []
+            if '재입사여부' in filtered_df.columns:
+                tenure_cols.append('재입사여부')
+            if '지인 입사권유' in filtered_df.columns:
+                tenure_cols.append('지인 입사권유')
+            
+            if tenure_cols:
+                tenure_analysis = filtered_df.groupby('근속연수_구간')[tenure_cols].mean()
+                
+                fig_tenure = go.Figure()
+                
+                if '재입사여부' in tenure_cols:
+                    fig_tenure.add_trace(go.Scatter(
+                        x=tenure_analysis.index.astype(str),
+                        y=tenure_analysis['재입사여부'],
+                        mode='lines+markers',
+                        name='재입사 의향',
+                        line=dict(width=3)
+                    ))
+                
+                if '지인 입사권유' in tenure_cols:
+                    fig_tenure.add_trace(go.Scatter(
+                        x=tenure_analysis.index.astype(str),
+                        y=tenure_analysis['지인 입사권유'],
+                        mode='lines+markers',
+                        name='추천 의향',
+                        line=dict(width=3)
+                    ))
+                
+                fig_tenure.update_layout(
+                    title="근속연수별 재입사/추천 의향",
+                    xaxis_title="근속연수",
+                    yaxis_title="평균 점수 (5점 만점)",
+                    height=400,
+                    plot_bgcolor='white',
+                    paper_bgcolor='white',
+                    font=font_dict,
+                    xaxis=dict(gridcolor='#e0e0e0'),
+                    yaxis=dict(gridcolor='#e0e0e0')
+                )
+                st.plotly_chart(fig_tenure, use_container_width=True)
     
     # 네 번째 행: 인사이트
     st.markdown("---")
@@ -474,34 +521,38 @@ if filtered_df is not None and len(filtered_df) > 0:
     
     with col1:
         # 가장 만족도가 높은 항목
-        top_items = avg_scores.nlargest(3)
-        st.info(f"""
-        **✅ 만족도 상위 3개 항목**
-        1. {top_items.index[0]}: {top_items.values[0]:.2f}점
-        2. {top_items.index[1]}: {top_items.values[1]:.2f}점
-        3. {top_items.index[2]}: {top_items.values[2]:.2f}점
-        """)
+        if len(avg_scores) >= 3:
+            top_items = avg_scores.nlargest(3)
+            st.info(f"""
+            **✅ 만족도 상위 3개 항목**
+            1. {top_items.index[0]}: {top_items.values[0]:.2f}점
+            2. {top_items.index[1]}: {top_items.values[1]:.2f}점
+            3. {top_items.index[2]}: {top_items.values[2]:.2f}점
+            """)
     
     with col2:
         # 가장 만족도가 낮은 항목
-        bottom_items = avg_scores.nsmallest(3)
-        st.warning(f"""
-        **⚠️ 개선 필요 항목**
-        1. {bottom_items.index[0]}: {bottom_items.values[0]:.2f}점
-        2. {bottom_items.index[1]}: {bottom_items.values[1]:.2f}점
-        3. {bottom_items.index[2]}: {bottom_items.values[2]:.2f}점
-        """)
+        if len(avg_scores) >= 3:
+            bottom_items = avg_scores.nsmallest(3)
+            st.warning(f"""
+            **⚠️ 개선 필요 항목**
+            1. {bottom_items.index[0]}: {bottom_items.values[0]:.2f}점
+            2. {bottom_items.index[1]}: {bottom_items.values[1]:.2f}점
+            3. {bottom_items.index[2]}: {bottom_items.values[2]:.2f}점
+            """)
     
     with col3:
         # 재입사/추천 의향과 상관관계가 높은 항목
-        correlations = filtered_df[satisfaction_cols].corrwith(filtered_df['재입사여부']).sort_values(ascending=False)
-        top_corr = correlations.head(3)
-        st.success(f"""
-        **🔗 재입사 의향과 상관관계**
-        1. {top_corr.index[0]}: {top_corr.values[0]:.3f}
-        2. {top_corr.index[1]}: {top_corr.values[1]:.3f}
-        3. {top_corr.index[2]}: {top_corr.values[2]:.3f}
-        """)
+        if '재입사여부' in filtered_df.columns and valid_satisfaction_cols:
+            correlations = filtered_df[valid_satisfaction_cols].corrwith(filtered_df['재입사여부']).sort_values(ascending=False)
+            if len(correlations) >= 3:
+                top_corr = correlations.head(3)
+                st.success(f"""
+                **🔗 재입사 의향과 상관관계**
+                1. {top_corr.index[0]}: {top_corr.values[0]:.3f}
+                2. {top_corr.index[1]}: {top_corr.values[1]:.3f}
+                3. {top_corr.index[2]}: {top_corr.values[2]:.3f}
+                """)
 
 else:
     if uploaded_file is None:
